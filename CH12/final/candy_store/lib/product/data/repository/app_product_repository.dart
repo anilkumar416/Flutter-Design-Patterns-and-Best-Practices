@@ -30,35 +30,66 @@ class AppProductRepository implements ProductRepository {
       return apiProducts;
     }
   }
-
+  
   @override
   Future<List<Product>> searchProducts(String query) async {
-    final allProducts = fakeSearchData;
+    // Fetch products from local or remote source
+    final allProducts = await fetchProducts();
+    print('Search Query: $query');
+    print('Total Products: ${allProducts.length}');
+
     if (query.isEmpty) {
       return allProducts;
     }
-    final results = await compute(_search, query);
-    return results;
-  }
 
-  static List<Product> _search(String query) {
-    final products = fakeSearchData;
-    final filtered = products.where((product) {
-      if (product.name.toLowerCase().contains(query.toLowerCase())) {
-        return true;
-      }
-      final nameDistance = _levenshteinDistance(
-        product.name.toLowerCase(),
-        query.toLowerCase(),
-      );
+    final filtered = allProducts.where((product) {
+      final nameMatch =
+          product.name.toLowerCase().contains(query.toLowerCase());
+      final descriptionMatch =
+          product.description.toLowerCase().contains(query.toLowerCase());
+      final nameDistance =
+          _levenshteinDistance(product.name.toLowerCase(), query.toLowerCase());
       final descriptionDistance = _levenshteinDistance(
-        product.description.toLowerCase(),
-        query.toLowerCase(),
-      );
-      return nameDistance <= 3 || descriptionDistance <= 3;
+          product.description.toLowerCase(), query.toLowerCase());
+
+      return nameMatch ||
+          descriptionMatch ||
+          nameDistance <= 3 ||
+          descriptionDistance <= 3;
     }).toList();
+
+    print('Search Results: ${filtered.length}');
     return filtered;
   }
+
+  // @override
+  // Future<List<Product>> searchProducts(String query) async {
+  //   final allProducts = fakeSearchData;
+  //   if (query.isEmpty) {
+  //     return allProducts;
+  //   }
+  //   final results = await compute(_search, query);
+  //   return results;
+  // }
+
+  // static List<Product> _search(String query) {
+  //   final products = fakeSearchData;
+  //   final filtered = products.where((product) {
+  //     if (product.name.toLowerCase().contains(query.toLowerCase())) {
+  //       return true;
+  //     }
+  //     final nameDistance = _levenshteinDistance(
+  //       product.name.toLowerCase(),
+  //       query.toLowerCase(),
+  //     );
+  //     final descriptionDistance = _levenshteinDistance(
+  //       product.description.toLowerCase(),
+  //       query.toLowerCase(),
+  //     );
+  //     return nameDistance <= 3 || descriptionDistance <= 3;
+  //   }).toList();
+  //   return filtered;
+  // }
 
   static int _levenshteinDistance(String a, String b) {
     if (a == b) {
