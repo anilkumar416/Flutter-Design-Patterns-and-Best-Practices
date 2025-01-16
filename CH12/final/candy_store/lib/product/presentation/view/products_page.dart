@@ -58,19 +58,43 @@ class _ProductsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (progress) const CircularProgressIndicator(),
-          if (items.isEmpty && !progress) const Text('No items found'),
-          if (!progress)
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return ProductListItemView(item: item);
-                },
-              ),
+          // if (progress) const CircularProgressIndicator(),
+          // if (items.isEmpty && !progress) const Text('No items found'),
+          // if (!progress)
+          //   Expanded(
+          //     child: ListView.builder(
+          //       padding: const EdgeInsets.symmetric(vertical: 16),
+          //       itemCount: items.length,
+          //       itemBuilder: (context, index) {
+          //         final item = items[index];
+          //         return ProductListItemView(item: item);
+          //       },
+          //     ),
+          //   ),
+          //can be better handled using blocbuilder code is much readable and cleaner
+           Expanded(
+            child: BlocBuilder<ProductsBloc, ProductsState>(
+              builder: (context, state) {
+                if (state.loadingResult.isInProgress) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (state.items.isEmpty) {
+                  return const Center(
+                    child: Text('No Items Found'),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: state.items.length,
+                  itemBuilder: (context, index) {
+                    final item = state.items[index];
+                    return ProductListItemView(item: item);
+                  },
+                );
+              },
             ),
+          ),
         ],
       ),
     );
